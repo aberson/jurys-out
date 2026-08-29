@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>jurys-out — operator proposal</title>
+  <style>
+    :root {
+      color-scheme: light dark;
+      --bg: #f7f7f4;
+      --surface: #ffffff;
+      --ink: #1d2626;
+      --muted: #586565;
+      --line: #ccd6d2;
+      --accent: #067a68;
+      --accent-soft: #d8f2ea;
+      --picked: #1656a1;
+      --default: #7a4e00;
+      --danger: #8b3030;
+      --code: #ecf1ef;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #101716;
+        --surface: #17211f;
+        --ink: #ebf4f1;
+        --muted: #b0c3bf;
+        --line: #36504a;
+        --accent: #70d6be;
+        --accent-soft: #153c33;
+        --picked: #8bc0ff;
+        --default: #f1be69;
+        --danger: #ffa5a5;
+        --code: #0d1513;
+      }
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font: 16px/1.55 ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif;
+    }
+    main { max-width: 980px; margin: 0 auto; padding: 48px 24px 72px; }
+    header { border-bottom: 1px solid var(--line); padding-bottom: 30px; }
+    h1, h2, h3 { line-height: 1.15; letter-spacing: -0.025em; }
+    h1 { font-size: clamp(2.2rem, 6vw, 4.3rem); margin: 0; }
+    h2 { margin: 48px 0 16px; font-size: 1.55rem; }
+    h3 { margin: 0 0 8px; font-size: 1rem; }
+    p { max-width: 76ch; }
+    .eyebrow { color: var(--accent); font-weight: 750; letter-spacing: .08em; text-transform: uppercase; font-size: .78rem; }
+    .tagline { color: var(--muted); font-size: 1.15rem; max-width: 62ch; }
+    .meta { color: var(--muted); font-size: .92rem; }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 20px;
+      margin: 12px 0;
+      break-inside: avoid;
+    }
+    .decision { display: grid; grid-template-columns: auto 1fr; gap: 14px; }
+    .badge {
+      display: inline-grid;
+      place-items: center;
+      width: 2.25rem;
+      height: 2.25rem;
+      font-weight: 800;
+      border-radius: 999px;
+      margin-top: 1px;
+    }
+    .picked { background: color-mix(in srgb, var(--picked) 16%, transparent); color: var(--picked); }
+    .default { background: color-mix(in srgb, var(--default) 18%, transparent); color: var(--default); }
+    .timeline { display: grid; gap: 0; border-left: 2px solid var(--accent); padding-left: 22px; }
+    .timeline article { position: relative; padding: 0 0 24px; }
+    .timeline article::before {
+      content: "";
+      width: 10px; height: 10px; border-radius: 50%;
+      background: var(--accent); position: absolute; left: -28px; top: 7px;
+    }
+    code, pre { font-family: ui-monospace, SFMono-Regular, Consolas, monospace; }
+    pre { white-space: pre-wrap; background: var(--code); border: 1px solid var(--line); padding: 14px; border-radius: 10px; }
+    ul { padding-left: 1.2rem; }
+    .not-in-v1 { columns: 2; gap: 24px; }
+    .risk { border-left: 4px solid var(--danger); }
+    a { color: var(--accent); }
+    footer { margin-top: 52px; color: var(--muted); border-top: 1px solid var(--line); padding-top: 16px; }
+    @media print {
+      body { background: #fff; color: #111; }
+      main { max-width: none; padding: 22px; }
+      .card { border-color: #aaa; }
+      a { color: #111; text-decoration: none; }
+    }
+    @media (max-width: 600px) { .not-in-v1 { columns: 1; } }
+  </style>
+</head>
+<body>
+<main>
+  <header>
+    <div class="eyebrow">Operator proposal · publication 3</div>
+    <h1>jurys-out</h1>
+    <p class="tagline">Codifying judge panels for agentic review workflows, because the jury is still out.</p>
+    <p class="meta">Plan source of truth: <code>../plan.md</code> · Proposal view: <code>documentation/jurys-out-proposal.html</code></p>
+  </header>
+
+  <section>
+    <h2>What I heard</h2>
+    <p>You want a public, thin tool for deciding whether development-review panels deserve their size and cost. The tool must make judges visible to users, resist redundant shared failure, avoid treating roles as a rigid MECE taxonomy, and include enough benchmark execution to establish whether a panel is better than its best individual judge.</p>
+  </section>
+
+  <section>
+    <h2>Why this shape</h2>
+    <p>The design is a local CLI rather than a service: it keeps diffs, CI evidence, keys, and raw judge output on the operator's machine. It adds a real runner because configurations alone cannot answer the five-judges question, then keeps the runner small: frozen local suites, foreground calls, exact resume, direct OpenAI and Anthropic adapters, and deterministic reporting.</p>
+  </section>
+
+  <section>
+    <h2>Phase timeline</h2>
+    <div class="timeline">
+      <article><h3>Plan complete</h3><p>Canonical plan, project instructions, and observatory registration now exist. No application code has been created.</p></article>
+      <article><h3>Build Steps 1–4</h3><p>Scaffold the CLI, validate immutable cards and cases, prove fake-run resume, then add transparent aggregation and metrics.</p></article>
+      <article><h3>Build Steps 5–7</h3><p>Add one narrow adapter per provider, then finish public docs, examples, and report walkthroughs.</p></article>
+      <article><h3>Manual M1–M2</h3><p>Run bounded one-call provider smokes and a small seed-panel benchmark; inspect the report rather than declaring success from tests alone.</p></article>
+    </div>
+    <pre>Afterwards:
+/plan-review --no-autofix --plan C:\Users\abero\dev\jurys-out\plan.md
+/plan-wrap --plan C:\Users\abero\dev\jurys-out\plan.md
+/repo-sync --plan C:\Users\abero\dev\jurys-out\plan.md
+/build-phase --plan C:\Users\abero\dev\jurys-out\plan.md</pre>
+  </section>
+
+  <section>
+    <h2>Operator choices</h2>
+    <div class="card decision" id="P1"><span class="badge picked">P1</span><div><h3>Public project and locked tagline</h3><p>Public utility. The tag line is locked as supplied.</p></div></div>
+    <div class="card decision" id="P2"><span class="badge picked">P2</span><div><h3>Transparent panel management for development review</h3><p>Users see judge roles, rubric, evidence requirements, votes, dissent, abstentions, configuration, and limitations.</p></div></div>
+    <div class="card decision" id="P3"><span class="badge picked">P3</span><div><h3>A minimal benchmark runner is in version 1</h3><p>Panel size remains a benchmark hypothesis, not a fixed five-judge product rule.</p></div></div>
+    <div class="card decision" id="P4"><span class="badge picked">P4</span><div><h3>Local CLI first</h3><p>No web product is required for the first release.</p></div></div>
+    <div class="card decision" id="P5"><span class="badge picked">P5</span><div><h3>One focused benchmark-case shape</h3><p>Task/specification, diff, relevant test or CI evidence, candidate finding, and human adjudication define the initial instrument.</p></div></div>
+    <div class="card decision" id="P6"><span class="badge picked">P6</span><div><h3>Not rigid MECE</h3><p>Judge cards declare primary ownership and intentional overlap. The tool measures redundant errors rather than enforcing arbitrary disjoint labels.</p></div></div>
+  </section>
+
+  <section>
+    <h2>Agent defaults</h2>
+    <div class="card decision" id="D1"><span class="badge default">D1</span><div><h3>Python/uv/TOML/JSONL local stack</h3><p><strong>What:</strong> Python >=3.12, uv, hatchling, argparse, TOML cards, JSONL data.</p><p><strong>Why:</strong> Thin, inspectable, and aligned with local benchmarking conventions.</p><p><strong>Tweak:</strong> Replace any individual component without changing the local-CLI boundary.</p></div></div>
+    <div class="card decision" id="D2"><span class="badge default">D2</span><div><h3>OpenAI and Anthropic first</h3><p><strong>What:</strong> Narrow direct adapters to Responses and Messages APIs.</p><p><strong>Why:</strong> Cross-family comparison is useful while a two-adapter scope stays small.</p><p><strong>Tweak:</strong> Start with only one adapter, or substitute a provider before build.</p></div></div>
+    <div class="card decision" id="D3"><span class="badge default">D3</span><div><h3>Raw outputs stay local</h3><p><strong>What:</strong> Retain raw provider responses by default under Git-ignored run artifacts; public reports expose structured evidence and concise rationale.</p><p><strong>Why:</strong> Enables audit and parser diagnosis without accidental disclosure.</p><p><strong>Tweak:</strong> Make raw retention opt-in or remove it entirely.</p></div></div>
+    <div class="card decision" id="D4"><span class="badge default">D4</span><div><h3>Foreground append-only execution</h3><p><strong>What:</strong> One case-by-judge call at a time, durable events, and resume only for exact frozen input hashes.</p><p><strong>Why:</strong> Reproducibility without queues or workers.</p><p><strong>Tweak:</strong> Permit bounded local concurrency after an evidence-backed follow-up.</p></div></div>
+    <div class="card decision" id="D5"><span class="badge default">D5</span><div><h3>Majority with escalation</h3><p><strong>What:</strong> Required members must complete; strict majority decides; ties and no-vote outcomes escalate.</p><p><strong>Why:</strong> An auditable baseline that preserves dissent.</p><p><strong>Tweak:</strong> Use weighted, unanimous, or specialist-veto aggregation after comparing it on a frozen holdout.</p></div></div>
+    <div class="card decision" id="D6"><span class="badge default">D6</span><div><h3>Hard request/token limits, optional price estimates</h3><p><strong>What:</strong> Request, input-byte, and output-token ceilings always bind; USD estimates require a local versioned price sheet.</p><p><strong>Why:</strong> Prevents surprise spend without claiming stale pricing is exact.</p><p><strong>Tweak:</strong> Require a price sheet for every live run.</p></div></div>
+    <div class="card decision" id="D7"><span class="badge default">D7</span><div><h3>Calibration and insufficient-data guardrails</h3><p><strong>What:</strong> Good/garbage anchors, frozen holdout cases, recurring sentinels, and explicit insufficient-data results.</p><p><strong>Why:</strong> A panel-selection claim needs evidence, not a decorative score.</p><p><strong>Tweak:</strong> Start with an exploratory-only mode that suppresses selection comparisons.</p></div></div>
+    <div class="card decision" id="D8"><span class="badge default">D8</span><div><h3>Seven build slices plus two manual live gates</h3><p><strong>What:</strong> Worktree-isolated automated steps, deep review for persistence/provider seams, then bounded live smokes and seed benchmark review.</p><p><strong>Why:</strong> Tests cover mocks; real provider contracts need separate observation.</p><p><strong>Tweak:</strong> Merge or split the build slices before repo-sync.</p></div></div>
+    <p class="meta">D9–D13 were accepted unchanged and are now part of the canonical plan.</p>
+    <div class="card decision" id="D9"><span class="badge default">D9</span><div><h3>MIT public license</h3><p><strong>What:</strong> Publish under the MIT license.</p><p><strong>Why:</strong> It is short and permissive for a thin public utility.</p><p><strong>Tweak:</strong> Change to Apache-2.0 later if an explicit patent grant becomes important.</p></div></div>
+    <div class="card decision" id="D10"><span class="badge default">D10</span><div><h3>Concrete spend controls</h3><p><strong>What:</strong> Require a versioned local TOML price book for estimated-USD limits; cap M1 at $1 and M2 at $5.</p><p><strong>Why:</strong> Request and token ceilings are safe, but a budget needs a reproducible estimate contract.</p><p><strong>Tweak:</strong> Change the price-book policy or caps in a later plan revision.</p></div></div>
+    <div class="card decision" id="D11"><span class="badge default">D11</span><div><h3>Explicit evaluation splits and invariance fixtures</h3><p><strong>What:</strong> Give every benchmark case a calibration, holdout, or sentinel split; test order swaps, identifier renaming, and misleading comments.</p><p><strong>Why:</strong> This makes the claimed guardrails executable rather than aspirational.</p><p><strong>Tweak:</strong> Narrow or expand the invariance set in a later plan revision.</p></div></div>
+    <div class="card decision" id="D12"><span class="badge default">D12</span><div><h3>Bounded retry policy</h3><p><strong>What:</strong> Retry timeout, connection, HTTP 429, and 5xx failures at most twice, respecting Retry-After and recording every attempt; do not retry auth, validation, refusal, or other 4xx failures.</p><p><strong>Why:</strong> It is deterministic, auditable, and avoids multiplying bad requests.</p><p><strong>Tweak:</strong> Change the retry count or narrow the retryable classes in a later plan revision.</p></div></div>
+    <div class="card decision" id="D13"><span class="badge default">D13</span><div><h3>Python 3.12-compatible UUIDv4 run IDs</h3><p><strong>What:</strong> Keep Python >=3.12 and use a standard-library UUIDv4 run suffix.</p><p><strong>Why:</strong> It resolves the UUIDv7 standard-library compatibility mismatch without raising the runtime floor.</p><p><strong>Tweak:</strong> Require Python >=3.14 and switch to UUIDv7 in a later plan revision.</p></div></div>
+  </section>
+
+  <section>
+    <h2>Not in version 1</h2>
+    <ul class="not-in-v1">
+      <li>Web UI or hosted multi-user service</li>
+      <li>Background jobs, queue, scheduler, or distributed execution</li>
+      <li>CI merge gating</li>
+      <li>Automatic panel optimization</li>
+      <li>External dataset scraping</li>
+      <li>Broad provider plug-in ecosystem</li>
+      <li>Opaque debate or hidden chain-of-thought display</li>
+      <li>Database or network listener</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Risks to keep visible</h2>
+    <div class="card risk"><h3>Small samples can lie</h3><p>The first suite cannot establish a broadly superior panel. The report must say insufficient data instead of presenting zero correlation or a winner.</p></div>
+    <div class="card risk"><h3>Code-review artifacts can be sensitive or adversarial</h3><p>Keep raw material local, never log keys, and treat diffs and CI text as untrusted evidence rather than instructions.</p></div>
+    <div class="card risk"><h3>Provider output is not a uniform substrate</h3><p>Schema response, refusal, usage, and pricing behavior differ. Preserve provider-specific facts and fail a required-member run openly.</p></div>
+  </section>
+
+  <section>
+    <h2>How to give feedback</h2>
+    <p>The plan remains the source of truth. Reply with terse IDs; a change updates the plan and republishes this same file with the same IDs.</p>
+    <pre>D2 -&gt; OpenAI only in v1
+D3 -&gt; raw output must be opt-in
+D5 -&gt; unanimous verdicts only
+D8 -&gt; merge Steps 5 and 6
+D9 -&gt; Apache-2.0
+D10 -&gt; $2 for M1 and $10 for M2
+D13 -&gt; require Python 3.14
+P5 -&gt; add repository metadata to every case</pre>
+    <p>Source paths: <code>C:\Users\abero\dev\jurys-out\plan.md</code> and <code>C:\Users\abero\dev\jurys-out\documentation\jurys-out-proposal.html</code>.</p>
+  </section>
+
+  <footer>Publication 3 · Stable IDs P1–P6 and D1–D13 · The plan, not this proposal, is authoritative.</footer>
+</main>
+</body>
+</html>
